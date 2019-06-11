@@ -1,0 +1,121 @@
+package com.interlocsolutions.informer.iwm;
+
+import com.interlocsolutions.maximo.notify.util.NotifyConstants;
+import com.interlocsolutions.maximo.notify.util.NotifyFault;
+import com.interlocsolutions.maximo.notify.util.NotifyUtil;
+
+import java.io.StringWriter;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import ibmts.nycha.app.workorder.NYCHAWOActivity;
+import ibmts.nycha.app.workorder.NYCHAWOResultRemote;
+import psdi.mbo.MboConstants;
+import psdi.mbo.MboRemote;
+import psdi.mbo.MboSetRemote;
+import psdi.mbo.StatefulMbo;
+import psdi.security.UserInfo;
+import psdi.server.MXServer;
+import psdi.util.MXException;
+import psdi.util.logging.MXLogger;
+
+import static ibmts.nycha.util.NYCHAConstants.BB_NYCHA_MOBILE;
+
+/**
+ * Created by cchaddock on 11/17/16.
+ * Copyright 2016 by Interloc Solutions Inc.
+ *
+ *  JR 1.1.0: T87119: Modify person.zzmap to match the data being created for security
+ *  JR 1.2.0: T86059: Set BB_NYCHA_MOBILE so Maximo knows the transaction came from Mobile
+ *
+ */
+
+@XmlRootElement(name = "command", namespace = NotifyConstants.NS)
+public class SendInspectionResultsCommand extends ExecuteWithRetryCommand {
+    public static final String COMMAND_NAME = "NEW_NYCHA_SENDINSPRESULTS";
+    public static final String COMMAND_VERSION = "1.4.25";
+    public static final String EMPTY_STRING = "n/a";
+
+    public static final List<String> INSLBPX_JPNUMS = Arrays.asList(
+            "INSLBPCO1",
+            "INSLBPCO2",
+            "INSLBPCO3",
+            "INSLBPCOH1",
+            "INSLBPCOH2",
+            "INSLBPCOH3",
+            "INSLBP-X",
+            "INSLBPXRF",
+            "INSLBP-XHA"
+    );
+
+    @SuppressWarnings("UnusedDeclaration")
+    @XmlElement(name = "workorderid", namespace = NotifyConstants.NS)
+    private Long workorderid;
+
+    @XmlElementWrapper(name = "tasks", namespace = NotifyConstants.NS)
+    @XmlElement(name = "WoTaskWrapper", namespace = NotifyConstants.NS)
+    private List<WoTaskWrapper> woTaskWrapperList = new ArrayList<WoTaskWrapper>();
+
+    @XmlElementWrapper(name = "results", namespace = NotifyConstants.NS)
+    @XmlElement(name = "woresultcmd", namespace = NotifyConstants.NS)
+    private List<WoResult> woResultList = new ArrayList<WoResult>();
+
+    public static final MXLogger LOGGER = NotifyConstants.INFORMER_COMMAND_LOGGER;
+
+    @Override
+    public String getVersion() {
+        return COMMAND_VERSION;
+    }
+
+    @Override
+    public String executeWithRetry() throws NotifyFault, MXException {
+
+        RecordIdMap map;
+
+        NotifyConstants.INFORMER_COMMAND_LOGGER.debug("Changing work order status. workorderid: " + workorderid);
+        MboSetRemote woSet = null;
+
+        String userZzMap = null;
+        boolean updateZZmapFinally = false;
+
+        UserInfo userInfo = null;
+
+        try {
+
+            // get workorder mbo
+            userInfo = Util.getLocalSessionUserInfo(session);
+
+            // set the bulletin board for mobile
+            MXServer.getBulletinBoard().post(BB_NYCHA_MOBILE, userInfo);
+
+            woSet = MXServer.getMXServer().getMboSet("WORKORDER", userInfo);
+            MboRemote workorder = Util.getEditableWorkOrderForId(workorderid, woSet);
+
+            // validation
+            if (workorder == null) {
+                throw new NotifyFault(String.format("Work Order with workorderid %1$d not found.  Please check security restrictions for user %2$s", workorderid, userInfo.getUserName()));
+            }
+            if("CAN".equals(workorder.getString("STATUS"))) {
+                workorder = Util.reOpenCancelledWorkorder((StatefulMbo) workorder,Util.getLocalSessionUserInfo(session));
+            }
+
+            setmWonum(workorder.getString("WONUM"));
+
+            // get the user's current dev (or null)
+            userZzMap = Util.getUserDevelopment(session.getUserName());
+
+            MboSetRemote locationSetMbo = workorder.getMboSet("LOCATION");
+            MboRemote locationMbo = locationSetMbo.getMbo(0);
+            String woLocZZManagedBy = locationMbo.ge

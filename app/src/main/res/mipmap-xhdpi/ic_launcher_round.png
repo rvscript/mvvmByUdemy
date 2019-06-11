@@ -1,0 +1,172 @@
+package com.interlocsolutions.informer.iwm;
+
+import com.interlocsolutions.maximo.notify.util.NotifyConstants;
+import com.interlocsolutions.maximo.notify.util.NotifyFault;
+import com.interlocsolutions.maximo.notify.util.NotifyUtil;
+
+import java.io.StringWriter;
+import java.rmi.RemoteException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import ibmts.nycha.app.workorder.virtual.NYCHAWOReopenSet;
+import psdi.app.labor.LabTrans;
+import psdi.mbo.MboRemote;
+import psdi.mbo.MboSetRemote;
+import psdi.mbo.SqlFormat;
+import psdi.mbo.StatefulMbo;
+import psdi.security.UserInfo;
+import psdi.server.MXServer;
+import psdi.util.MXException;
+import psdi.util.logging.MXLogger;
+
+import static ibmts.nycha.util.NYCHAConstants.BB_NYCHA_MOBILE;
+
+@XmlRootElement(name = "command", namespace = NotifyConstants.NS)
+public class AddActualLaborCommand extends ExecuteWithRetryCommand {
+
+    public static final String COMMAND_NAME = "WMADDACTUALLABOR";
+    public static final String COMMAND_VERSION = "1.1.14";
+
+    public static final MXLogger LOGGER = NotifyConstants.INFORMER_COMMAND_LOGGER;
+
+    @XmlElement(name = "workorderid", namespace = NotifyConstants.NS, required = true)
+    Long workorderid;
+
+    @XmlElement(name = "wonum", namespace = NotifyConstants.NS, required = true)
+    String wonum;
+
+    @XmlElement(name = "clientid", namespace = NotifyConstants.NS, required = true)
+    String clientId;
+
+    @XmlElement(name = "laborcode", namespace = NotifyConstants.NS, required = true)
+    String laborcode;
+
+    @XmlElement(name = "regularhrs", namespace = NotifyConstants.NS, required = true)
+    String regularhrs;
+
+    @XmlElement(name = "startdate", namespace = NotifyConstants.NS, required = true)
+    Date startdate;
+
+    @XmlElement(name = "starttime", namespace = NotifyConstants.NS, required = true)
+    Date starttime;
+
+    @XmlElement(name = "finishdate", namespace = NotifyConstants.NS, required = true)
+    Date finishdate;
+
+    @XmlElement(name = "finishtime", namespace = NotifyConstants.NS, required = true)
+    Date finishtime;
+
+    @XmlElement(name = "transtype", namespace = NotifyConstants.NS, required = true)
+    String transtype;
+
+    @XmlElement(name = "videoburnedcopy", namespace = NotifyConstants.NS, required = true)
+    String videoburnedcopy;
+
+    @XmlElement(name = "videoburnedorig", namespace = NotifyConstants.NS, required = true)
+    String videoburnedorig;
+
+    boolean isReopened = false;
+
+
+    @Override
+    public String executeWithRetry() throws NotifyFault, MXException {
+
+
+        String result = null;
+
+        RecordIdMap recordIdMap = new RecordIdMap();
+
+        MboSetRemote woSet = null;
+        MboSetRemote laborSet = null;
+        NYCHAWOReopenSet woReopenset =null;
+        boolean isReopened = false;
+	    UserInfo userInfo = null;
+
+	    MboRemote woReopenData = null;
+        setmWonum(wonum);
+        makeWonumMapEntry(wonum);
+
+        try {
+
+            userInfo = Util.getLocalSessionUserInfo(session);
+
+            // set the bulletin board for mobile
+            MXServer.getBulletinBoard().post(BB_NYCHA_MOBILE, userInfo);
+
+            woSet = MXServer.getMXServer().getMboSet("WORKORDER", userInfo);
+            SqlFormat sf = new SqlFormat("wonum = :1");
+            sf.setObject(1, "WORKORDER", "WONUM", wonum);
+            woSet.setWhere(sf.format());
+            StatefulMbo wo = (StatefulMbo) woSet.getMbo(0);
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Adding labor for wonum: " + wonum);
+            }
+
+            Util.ensureWorkOrderEditable(wo);
+
+            if (wo == null) {
+                throw new NotifyFault(String.format("Work Order with workorderid %1$d not found.  Please check security restrictions for user %2$s", workorderid, woSet.getUserInfo().getUserName()));
+            }
+
+            if ("CAN".equals(wo.getString("STATUS"))) {
+                wo = (StatefulMbo) Util.reOpenCancelledWorkorder(wo, userInfo);
+            }
+
+            Util.autoApproveWorkOrder(wo);
+            laborSet = wo.getMboSet("LABTRANS");
+            LabTrans tran = (LabTrans) laborSet.add();
+
+            // https://projects.interlocsolutions.com/issues/8310
+            // replicate same check as in in the custom labtrans code
+            Date now = MXServer.getMXServer().getDate();
+            DateFormat localDateFormat = new SimpleDateFormat("HH:mm:ss");
+
+
+            // if end date is after now, adjust start date
+            Date dtEnd = tran.validateDateTime(this.finishdate, this.finishtime);
+            if (dtEnd.after(now)) {
+
+                this.finishdate = now;
+                this.finishtime = now;
+
+                long regularHoursDuration;
+                String regularHrsSplit[] = regularhrs.split(":");
+                regularHoursDuration = TimeUnit.MILLISECONDS.convert(Integer.parseInt(regularHrsSplit[0]), TimeUnit.HOURS);
+                regularHoursDuration += TimeUnit.MILLISECONDS.convert(Integer.parseInt(regularHrsSplit[1]), TimeUnit.MINUTES);
+
+                long startTimeMs = now.getTime() - regularHoursDuration;
+                this.startdate = new Date(startTimeMs);
+                this.starttime = this.startdate;
+            }
+
+            // If the start date/time are before ZZCREATEDATE, we presume that the app sent us
+            // the same minute, but with the seconds trimmed off. In this case, start time could be
+            // 12:15:00, and ZZCREATEDATE = 12:15:25.
+            // Raise to the minute ceiling to pass validation further on
+            Date woZZCreateDate = wo.getDate("ZZCREATEDATE");
+            if (woZZCreateDate != null && this.startdate.before(woZZCreateDate)) {
+                Calendar woZZCreateDateCeiling = Calendar.getInstance();
+                woZZCreateDateCeiling.setTime(woZZCreateDate);
+                woZZCreateDateCeiling.set(Calendar.SECOND, 59);
+                woZZCreateDateCeiling.set(Calendar.MILLISECOND, 999);
+                this.startdate = new Date(woZZCreateDateCeiling.getTime().getTime());
+                this.starttime = this.startdate;
+            }
+
+            tran.setValue("LABORCODE", this.laborcode);
+            tran.setValue("STARTDATE", this.startdate);
+
+            //TODO This is not implemented until a decision is made on how to best handle the situation of a work order being created after the work is performed.
+            //make sure the start time isn't before the work order started.
+//        
