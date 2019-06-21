@@ -1,13 +1,14 @@
 package com.example.rv193.mvvmudemy.home;
 
-import android.arch.lifecycle.ViewModel;
-import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +23,7 @@ public class ListFragment extends Fragment {
     private TextView textView;
     private ProgressBar progressBar;
     private ListViewModel viewModel;
-
+    private static int y = 0;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -32,6 +33,7 @@ public class ListFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recycler_view);
         textView = view.findViewById(R.id.tv_error);
         progressBar = view.findViewById(R.id.loading_view);
+        //setRetainInstance(true);
 
         return view;
     }
@@ -40,6 +42,14 @@ public class ListFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 //        MVVM will reuse one instance of this !!!
         viewModel = ViewModelProviders.of(this).get(ListViewModel.class);
+        Log.d(ListViewModel.TAG, "onViewCreated: "+y+++" ListViewModel count="+ ListViewModel.x);
+//        set up recyclerview
+//        add itemdecoration for item separation
+        recyclerView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
+//        set adapter with vm and lifecycle owner
+        recyclerView.setAdapter(new RepoListAdapter(viewModel, this));
+//        set the layout manager
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 //        We need to listen to all of the livedata objects with the following observe method
         observeViewModel();
     }

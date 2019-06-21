@@ -3,6 +3,7 @@ package com.example.rv193.mvvmudemy.viewmodel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.ViewModel;
+import android.util.Log;
 
 import com.example.rv193.mvvmudemy.model.Repo;
 import com.example.rv193.mvvmudemy.network.RepoApi;
@@ -17,11 +18,13 @@ public class ListViewModel extends ViewModel {
     private final MutableLiveData<List<Repo>> repos = new MutableLiveData<>();
     private final MutableLiveData<Boolean> repoLoadError = new MutableLiveData<>();
     private final MutableLiveData<Boolean> loading = new MutableLiveData<>();
-
+    public static final String TAG = "lvm";
 // Fetch Repos() will handle the data coming from API
     private Call<List<Repo>> repoCall;
+    public static int x = 0;
 
     public ListViewModel() {
+        Log.d(TAG, "ListViewModel: "+ x++);
         fetchRepos();
     }
 
@@ -46,10 +49,12 @@ public class ListViewModel extends ViewModel {
         repoCall.enqueue(new Callback<List<Repo>>() {
             @Override
             public void onResponse(Call<List<Repo>> call, Response<List<Repo>> response) {
-                repoLoadError.setValue(false);
-                repos.setValue(response.body());
-                loading.setValue(false);
-                repoCall = null;
+
+                    repoLoadError.setValue(false);
+                    repos.setValue(response.body());
+                    loading.setValue(false);
+                    repoCall = null;
+
             }
 
             @Override
