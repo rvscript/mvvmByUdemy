@@ -8,6 +8,7 @@ public class Repo {
     public final String description;
     public final User owner;
 //    moshi allows us to give the api value what ever we want
+//    @Json(name = actualkey) and then name is whatever
     @Json(name = "stargazers_count")
     public final long stars;
     @Json(name = "forks_count")
