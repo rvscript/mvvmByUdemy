@@ -14,7 +14,7 @@
         android:theme="@style/AppTheme">
         <activity android:name=".home.logInActivity.LoginActivity">
         </activity>
-        <activity android:name=".home.activities.mainActivity.MainActivity">
+        <activity android:name=".home.mainActivity.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 

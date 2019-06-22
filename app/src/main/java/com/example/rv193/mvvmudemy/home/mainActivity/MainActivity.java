@@ -1,4 +1,4 @@
-package com.example.rv193.mvvmudemy.home.activities.mainActivity;
+package com.example.rv193.mvvmudemy.home.mainActivity;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
