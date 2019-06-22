@@ -1,9 +1,10 @@
-package com.example.rv193.mvvmudemy.home;
+package com.example.rv193.mvvmudemy.home.activities.mainActivity;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import com.example.rv193.mvvmudemy.R;
+import com.example.rv193.mvvmudemy.home.activities.mainActivity.fragments.listFragment.ListFragment;
 
 public class MainActivity extends AppCompatActivity {
 

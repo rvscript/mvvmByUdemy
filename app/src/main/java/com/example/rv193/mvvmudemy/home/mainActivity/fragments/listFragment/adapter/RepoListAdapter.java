@@ -1,4 +1,4 @@
-package com.example.rv193.mvvmudemy.home;
+package com.example.rv193.mvvmudemy.home.activities.mainActivity.fragments.listFragment.adapter;
 
 import android.arch.lifecycle.LifecycleOwner;
 import android.support.annotation.NonNull;
@@ -20,7 +20,7 @@ public class RepoListAdapter extends RecyclerView.Adapter<RepoListAdapter.RepoVi
     private final List<Repo> data = new ArrayList<>();
 
     //    constructor will initiate list and view model
-    RepoListAdapter(ListViewModel viewModel, LifecycleOwner lco) {
+    public RepoListAdapter(ListViewModel viewModel, LifecycleOwner lco) {
 //        to set up always pass in the lifecycle owner in observe
         viewModel.getRepos().observe(lco, repos -> {
             data.clear();

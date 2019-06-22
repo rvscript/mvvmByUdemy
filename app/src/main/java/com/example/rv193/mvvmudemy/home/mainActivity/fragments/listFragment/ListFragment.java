@@ -1,4 +1,4 @@
-package com.example.rv193.mvvmudemy.home;
+package com.example.rv193.mvvmudemy.home.activities.mainActivity.fragments.listFragment;
 
 import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
@@ -16,6 +16,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.rv193.mvvmudemy.R;
+import com.example.rv193.mvvmudemy.home.activities.mainActivity.fragments.listFragment.adapter.RepoListAdapter;
 import com.example.rv193.mvvmudemy.viewmodel.ListViewModel;
 
 public class ListFragment extends Fragment {

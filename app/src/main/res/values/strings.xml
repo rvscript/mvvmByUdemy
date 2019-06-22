@@ -4,4 +4,6 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="api_error_repos">Error Loading Repos ...xxx</string>
+    <string name="tv_forks">Forks</string>
+    <string name="tv_stars">Stars</string>
 </resources>
