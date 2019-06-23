@@ -49,7 +49,6 @@ public class ListViewModel extends ViewModel {
         repoCall.enqueue(new Callback<List<Repo>>() {
             @Override
             public void onResponse(Call<List<Repo>> call, Response<List<Repo>> response) {
-
                     repoLoadError.setValue(false);
                     repos.setValue(response.body());
                     loading.setValue(false);

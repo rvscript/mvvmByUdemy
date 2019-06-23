@@ -16,7 +16,7 @@ import com.example.rv193.mvvmudemy.viewmodel.SelectedRepoViewModel;
 
 public class DetailsFragment extends Fragment {
     private TextView tvRepoName, tvDescription, tvForks, tvStars;
-
+    private SelectedRepoViewModel selectedRepoViewModel;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -30,13 +30,24 @@ public class DetailsFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+//        We will have viewmodel here to have additional methods for save and restore
+//        get a reference to the SelectRepoViewModel
+        selectedRepoViewModel =
+                ViewModelProviders.of(getActivity()).get(SelectedRepoViewModel.class);
+//        notice we are using the fragments Bundle
+        selectedRepoViewModel.restoreFromBundle(savedInstanceState);
         displayRepo();
     }
 
+//    onSaveInstanceState
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        selectedRepoViewModel.saveToBundle(outState);
+    }
+
     private void displayRepo() {
-//        get a reference to the SelectRepoViewModel
-        SelectedRepoViewModel selectedRepoViewModel =
-                ViewModelProviders.of(getActivity()).get(SelectedRepoViewModel.class);
+
         selectedRepoViewModel.getSelectedRepo().observe(this, repo -> {
             tvRepoName.setText(repo.name);
             tvDescription.setText(repo.description);
