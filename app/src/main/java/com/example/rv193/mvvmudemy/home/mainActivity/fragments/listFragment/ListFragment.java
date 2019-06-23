@@ -16,7 +16,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.rv193.mvvmudemy.R;
-import com.example.rv193.mvvmudemy.home.adapter.RepoListAdapter;
 import com.example.rv193.mvvmudemy.home.mainActivity.fragments.detailsFragment.DetailsFragment;
 import com.example.rv193.mvvmudemy.home.mainActivity.interfaces.RepoSelectedListener;
 import com.example.rv193.mvvmudemy.model.Repo;

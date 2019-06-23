@@ -1,4 +1,4 @@
-package com.example.rv193.mvvmudemy.home.adapter;
+package com.example.rv193.mvvmudemy.home.mainActivity.fragments.listFragment;
 
 import android.arch.lifecycle.LifecycleOwner;
 import android.support.annotation.NonNull;
