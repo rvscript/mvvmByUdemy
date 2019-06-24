@@ -11,7 +11,7 @@ import android.widget.TextView;
 import com.example.rv193.mvvmudemy.R;
 import com.example.rv193.mvvmudemy.home.mainActivity.interfaces.RepoSelectedListener;
 import com.example.rv193.mvvmudemy.model.Repo;
-import com.example.rv193.mvvmudemy.viewmodel.ListViewModel;
+import com.example.rv193.mvvmudemy.viewmodel.viewModels.ListViewModel;
 
 import java.util.ArrayList;
 import java.util.List;

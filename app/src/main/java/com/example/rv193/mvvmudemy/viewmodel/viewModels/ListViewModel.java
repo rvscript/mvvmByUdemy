@@ -1,4 +1,4 @@
-package com.example.rv193.mvvmudemy.viewmodel;
+package com.example.rv193.mvvmudemy.viewmodel.viewModels;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
@@ -7,8 +7,11 @@ import android.util.Log;
 
 import com.example.rv193.mvvmudemy.model.Repo;
 import com.example.rv193.mvvmudemy.network.RepoApi;
+import com.example.rv193.mvvmudemy.network.RepoService;
 
 import java.util.List;
+
+import javax.inject.Inject;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -19,12 +22,17 @@ public class ListViewModel extends ViewModel {
     private final MutableLiveData<Boolean> repoLoadError = new MutableLiveData<>();
     private final MutableLiveData<Boolean> loading = new MutableLiveData<>();
     public static final String TAG = "lvm";
+//    Dagger Added
+    private final RepoService repoService;
 // Fetch Repos() will handle the data coming from API
     private Call<List<Repo>> repoCall;
     public static int x = 0;
 
-    public ListViewModel() {
+//  Dagger added
+    @Inject
+    public ListViewModel(RepoService repoService) {
         Log.d(TAG, "ListViewModel: "+ x++);
+        this.repoService = repoService;
         fetchRepos();
     }
 
@@ -44,7 +52,9 @@ public class ListViewModel extends ViewModel {
 
     private void fetchRepos() {
         loading.setValue(true);
-        repoCall = RepoApi.getInstance().getRepositories();
+//        Here replace repoApi.getInstance()... with our RepoService Object from Dagger
+//        repoCall = RepoApi.getInstance().getRepositories();
+        repoCall = repoService.getRepositories();
 //        we can call enqueue and get anonymous type callback
         repoCall.enqueue(new Callback<List<Repo>>() {
             @Override

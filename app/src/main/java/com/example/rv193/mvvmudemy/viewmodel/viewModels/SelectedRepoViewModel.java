@@ -1,4 +1,4 @@
-package com.example.rv193.mvvmudemy.viewmodel;
+package com.example.rv193.mvvmudemy.viewmodel.viewModels;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
@@ -9,12 +9,19 @@ import android.util.Log;
 import com.example.rv193.mvvmudemy.model.Repo;
 import com.example.rv193.mvvmudemy.network.RepoApi;
 
+import javax.inject.Inject;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class SelectedRepoViewModel extends ViewModel {
     private final MutableLiveData<Repo> selectedRepo = new MutableLiveData<>();
+
+    @Inject
+    public SelectedRepoViewModel() {
+
+    }
     public LiveData<Repo> getSelectedRepo() {
         return selectedRepo;
     }

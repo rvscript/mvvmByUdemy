@@ -1,6 +1,5 @@
 package com.example.rv193.mvvmudemy.home.mainActivity.fragments.detailsFragment;
 
-import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -12,7 +11,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.example.rv193.mvvmudemy.R;
-import com.example.rv193.mvvmudemy.viewmodel.SelectedRepoViewModel;
+import com.example.rv193.mvvmudemy.viewmodel.viewModels.SelectedRepoViewModel;
 
 public class DetailsFragment extends Fragment {
     private TextView tvRepoName, tvDescription, tvForks, tvStars;

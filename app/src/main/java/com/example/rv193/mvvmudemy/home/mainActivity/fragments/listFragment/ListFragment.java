@@ -19,8 +19,8 @@ import com.example.rv193.mvvmudemy.R;
 import com.example.rv193.mvvmudemy.home.mainActivity.fragments.detailsFragment.DetailsFragment;
 import com.example.rv193.mvvmudemy.home.mainActivity.interfaces.RepoSelectedListener;
 import com.example.rv193.mvvmudemy.model.Repo;
-import com.example.rv193.mvvmudemy.viewmodel.ListViewModel;
-import com.example.rv193.mvvmudemy.viewmodel.SelectedRepoViewModel;
+import com.example.rv193.mvvmudemy.viewmodel.viewModels.ListViewModel;
+import com.example.rv193.mvvmudemy.viewmodel.viewModels.SelectedRepoViewModel;
 
 public class ListFragment extends Fragment implements RepoSelectedListener {
     private RecyclerView recyclerView;
