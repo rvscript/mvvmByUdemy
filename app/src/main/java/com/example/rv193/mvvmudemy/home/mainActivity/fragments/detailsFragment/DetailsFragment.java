@@ -1,6 +1,7 @@
 package com.example.rv193.mvvmudemy.home.mainActivity.fragments.detailsFragment;
 
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -11,9 +12,23 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.example.rv193.mvvmudemy.R;
+import com.example.rv193.mvvmudemy.base.MvvmApp;
+import com.example.rv193.mvvmudemy.viewmodel.ViewModelFactory;
 import com.example.rv193.mvvmudemy.viewmodel.viewModels.SelectedRepoViewModel;
 
+import javax.inject.Inject;
+
+/*
+first inject the viewmodel factory,
+then we override on attach and get a reference to the application component
+then create an inject method for this fragment inside application component
+then add argument to viewmodelproviders.of
+This will get the view model from the view model factory
+ */
+
 public class DetailsFragment extends Fragment {
+    @Inject
+    ViewModelFactory viewModelFactory;
     private TextView tvRepoName, tvDescription, tvForks, tvStars;
     private SelectedRepoViewModel selectedRepoViewModel;
     @Nullable
@@ -28,11 +43,17 @@ public class DetailsFragment extends Fragment {
     }
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        MvvmApp.getApplicationComponent(context).inject(this);
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 //        We will have viewmodel here to have additional methods for save and restore
 //        get a reference to the SelectRepoViewModel
         selectedRepoViewModel =
-                ViewModelProviders.of(getActivity()).get(SelectedRepoViewModel.class);
+                ViewModelProviders.of(getActivity(), viewModelFactory).get(SelectedRepoViewModel.class);
 //        notice we are using the fragments Bundle
         selectedRepoViewModel.restoreFromBundle(savedInstanceState);
         displayRepo();

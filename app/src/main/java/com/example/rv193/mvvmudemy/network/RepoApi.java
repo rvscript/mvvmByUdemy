@@ -2,7 +2,8 @@ package com.example.rv193.mvvmudemy.network;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.moshi.MoshiConverterFactory;
-
+/*
+* This class is replaced by Dagger's viewmodelmodule*/
 public class RepoApi {
     private static final String BASE_URL = "https://api.github.com/";
     private static Retrofit retrofit;

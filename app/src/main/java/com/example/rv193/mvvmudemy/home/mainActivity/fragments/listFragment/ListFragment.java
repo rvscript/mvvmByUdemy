@@ -1,6 +1,7 @@
 package com.example.rv193.mvvmudemy.home.mainActivity.fragments.listFragment;
 
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -16,18 +17,34 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.rv193.mvvmudemy.R;
+import com.example.rv193.mvvmudemy.base.MvvmApp;
 import com.example.rv193.mvvmudemy.home.mainActivity.fragments.detailsFragment.DetailsFragment;
 import com.example.rv193.mvvmudemy.home.mainActivity.interfaces.RepoSelectedListener;
 import com.example.rv193.mvvmudemy.model.Repo;
+import com.example.rv193.mvvmudemy.viewmodel.ViewModelFactory;
 import com.example.rv193.mvvmudemy.viewmodel.viewModels.ListViewModel;
 import com.example.rv193.mvvmudemy.viewmodel.viewModels.SelectedRepoViewModel;
 
+import javax.inject.Inject;
+
 public class ListFragment extends Fragment implements RepoSelectedListener {
+    //    inject the ViewModelFactory that you created
+    @Inject
+    ViewModelFactory viewModelFactory;
     private RecyclerView recyclerView;
     private TextView textView;
     private ProgressBar progressBar;
     private ListViewModel viewModel;
     private static int y = 0;
+
+//    For Dagger to be able to provide this to the fragment we need to inject the fragment using
+// ther componnent
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        MvvmApp.getApplicationComponent(context).inject(this);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -45,8 +62,10 @@ public class ListFragment extends Fragment implements RepoSelectedListener {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 //        MVVM will reuse one instance of this !!!
-        viewModel = ViewModelProviders.of(this).get(ListViewModel.class);
-        Log.d(ListViewModel.TAG, "onViewCreated: "+y+++" ListViewModel count="+ ListViewModel.x);
+//        We are adding an argument to pass in the viewmodel factory
+//        When a viewmodel needs to be created, it will get it from the factory
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(ListViewModel.class);
+        Log.d(ListViewModel.TAG, "onViewCreated: " + y++ + " ListViewModel count=" + ListViewModel.x);
 //        set up recyclerview
 //        add itemdecoration for item separation
         recyclerView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
@@ -58,19 +77,19 @@ public class ListFragment extends Fragment implements RepoSelectedListener {
         observeViewModel();
     }
 
-/*      use repo selected listener to communicate to details fragment
-        when onclick in Adapter is pressed, the onRepoSelected interface is implemented
-        the interface will then call an additional viewmodel with current repo and make a
-        fragment transaction to the details fragment
+    /*      use repo selected listener to communicate to details fragment
+            when onclick in Adapter is pressed, the onRepoSelected interface is implemented
+            the interface will then call an additional viewmodel with current repo and make a
+            fragment transaction to the details fragment
 
-        Repo comes from Adapter
- */
+            Repo comes from Adapter
+     */
     @Override
     public void onRepoSelected(Repo repo) {
 //        to access one viewmodel with multiple fragements we must use ViewModelProviders.of
 // (getActivity().get(YourViewModel.class);
         SelectedRepoViewModel selectedRepoViewModel =
-                ViewModelProviders.of(getActivity()).get(SelectedRepoViewModel.class);
+                ViewModelProviders.of(getActivity(), viewModelFactory).get(SelectedRepoViewModel.class);
         selectedRepoViewModel.setSelectedRepo(repo);
         getActivity().getSupportFragmentManager().beginTransaction()
                 .replace(R.id.screen_container, new DetailsFragment())
@@ -82,14 +101,14 @@ public class ListFragment extends Fragment implements RepoSelectedListener {
 //        to observe livedata use the GETTER from ViewModel and Call OBSERVE
 //        viewmodel.getYouCreated().observe(LifeCycleOwner: this, anonymous f() lambda)
         viewModel.getRepos().observe(this, repos -> {
-            if(repos != null) {
+            if (repos != null) {
                 recyclerView.setVisibility(View.VISIBLE);
             }
         });
 //        reference to the error live data and do the same thing
         viewModel.getError().observe(this, isError -> {
 //            if isError Check
-            if(isError) {
+            if (isError) {
                 textView.setVisibility(View.VISIBLE);
                 recyclerView.setVisibility(View.GONE);
                 textView.setText(R.string.api_error_repos);
@@ -101,7 +120,7 @@ public class ListFragment extends Fragment implements RepoSelectedListener {
 //        Loading live data
         viewModel.getLoading().observe(this, isLoading -> {
             progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
-            if(isLoading) {
+            if (isLoading) {
                 textView.setVisibility(View.GONE);
                 recyclerView.setVisibility(View.GONE);
             }

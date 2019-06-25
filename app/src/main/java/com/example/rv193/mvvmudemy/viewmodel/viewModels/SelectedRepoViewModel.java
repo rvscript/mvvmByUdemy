@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.example.rv193.mvvmudemy.model.Repo;
 import com.example.rv193.mvvmudemy.network.RepoApi;
+import com.example.rv193.mvvmudemy.network.RepoService;
 
 import javax.inject.Inject;
 
@@ -17,10 +18,10 @@ import retrofit2.Response;
 
 public class SelectedRepoViewModel extends ViewModel {
     private final MutableLiveData<Repo> selectedRepo = new MutableLiveData<>();
-
+    private RepoService repoService;
     @Inject
-    public SelectedRepoViewModel() {
-
+    public SelectedRepoViewModel(RepoService repoService) {
+        this.repoService = repoService;
     }
     public LiveData<Repo> getSelectedRepo() {
         return selectedRepo;
@@ -54,7 +55,7 @@ public class SelectedRepoViewModel extends ViewModel {
 
     private void loadRepo(String[] repoDetails) {
 //        get a reference to a Call from repoService
-        repoCall = RepoApi.getInstance().getRepo(repoDetails[0], repoDetails[1]);
+        repoCall = repoService.getRepo(repoDetails[0], repoDetails[1]);
         repoCall.enqueue(new Callback<Repo>() {
             @Override
             public void onResponse(Call<Repo> call, Response<Repo> response) {
